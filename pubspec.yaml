@@ -1,0 +1,28 @@
+name: notifiable
+description: Flutter SDK for Notifiable. Registers a device, asks for notification permission, and identifies the person using the app.
+version: 0.1.0
+homepage: https://notifiable.sh
+publish_to: none
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: sh.notifiable.notifiable
+        pluginClass: NotifiablePlugin
+      ios:
+        pluginClass: NotifiablePlugin
