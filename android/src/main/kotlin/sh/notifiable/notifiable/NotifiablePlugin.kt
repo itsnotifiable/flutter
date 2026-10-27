@@ -2,11 +2,14 @@ package sh.notifiable.notifiable
 
 import android.Manifest
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -66,7 +69,10 @@ class NotifiablePlugin :
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "permissionStatus" -> result.success(permissionStatus())
+            "permissionStatus" -> {
+                prepareDefaultChannel()
+                result.success(permissionStatus())
+            }
             "requestPermission" -> requestPermission(result)
             "getToken" -> token(result)
             "registrationError" -> result.success(registrationError)
@@ -102,16 +108,51 @@ class NotifiablePlugin :
             return
         }
 
-        if (Build.VERSION.SDK_INT < 33 || permissionStatus() == "granted") {
-            result.success(permissionStatus())
+        prepareDefaultChannel()
+
+        if (permissionStatus() == "granted") {
+            result.success("granted")
             return
         }
 
         val current = activity
 
+        if (Build.VERSION.SDK_INT < 33) {
+            if (current != null && permissionStatus() == "denied") {
+                openNotificationSettings(current)
+            }
+            result.success(permissionStatus())
+            return
+        }
+
         if (current == null) {
             result.success(permissionStatus())
             return
+        }
+
+        if (hasPostNotificationsPermission(context) && !notificationsEnabled(context)) {
+            openNotificationSettings(current)
+            result.success("denied")
+            return
+        }
+
+        val status = permissionStatus()
+        if (
+            status == "denied" &&
+            !ActivityCompat.shouldShowRequestPermissionRationale(
+                current,
+                Manifest.permission.POST_NOTIFICATIONS,
+            )
+        ) {
+            openNotificationSettings(current)
+            result.success("denied")
+            return
+        }
+
+        val previous = pendingPermission
+        if (previous != null) {
+            previous.success(permissionStatus())
+            pendingPermission = null
         }
 
         pendingPermission = result
@@ -126,26 +167,78 @@ class NotifiablePlugin :
         val context = applicationContext ?: return "not_determined"
 
         if (Build.VERSION.SDK_INT < 33) {
-            return if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            return if (notificationsEnabled(context)) {
                 "granted"
             } else {
                 "denied"
             }
         }
 
-        val granted =
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
-            ) == PackageManager.PERMISSION_GRANTED
-
-        if (granted) {
+        if (hasPostNotificationsPermission(context) && notificationsEnabled(context)) {
             return "granted"
+        }
+
+        if (hasPostNotificationsPermission(context) && !notificationsEnabled(context)) {
+            return "denied"
         }
 
         val asked = context.getSharedPreferences(preferencesName, Context.MODE_PRIVATE)
             .getBoolean("asked", false)
         return if (asked) "denied" else "not_determined"
+    }
+
+    private fun hasPostNotificationsPermission(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun notificationsEnabled(context: Context): Boolean {
+        return NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+
+    private fun prepareDefaultChannel() {
+        if (Build.VERSION.SDK_INT < 26) {
+            return
+        }
+
+        val context = applicationContext ?: return
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        if (manager.getNotificationChannel(defaultChannelId) != null) {
+            return
+        }
+
+        manager.createNotificationChannel(
+            NotificationChannel(
+                defaultChannelId,
+                defaultChannelName,
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+    }
+
+    private fun openNotificationSettings(activity: Activity) {
+        val context = applicationContext ?: return
+        val intent = if (Build.VERSION.SDK_INT >= 26) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            }
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+            }
+        }
+
+        try {
+            activity.startActivity(intent)
+        } catch (_: Exception) {
+            try {
+                context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            } catch (_: Exception) {
+                return
+            }
+        }
     }
 
     private fun token(result: MethodChannel.Result) {
@@ -232,5 +325,7 @@ class NotifiablePlugin :
     companion object {
         private const val requestCodePermission = 41018
         private const val preferencesName = "notifiable.push"
+        private const val defaultChannelId = "default"
+        private const val defaultChannelName = "Default"
     }
 }

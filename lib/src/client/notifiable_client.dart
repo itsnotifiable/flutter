@@ -231,10 +231,11 @@ class NotifiableClient extends ChangeNotifier {
     }
 
     logger.info('Permission prompt requested', const {});
-    await _performRequestPermission();
+    // Dashboard prompts must clear even when a token cannot be created.
+    await _performRequestPermission(requireToken: false);
   }
 
-  Future<PermissionStatus> _performRequestPermission() {
+  Future<PermissionStatus> _performRequestPermission({bool requireToken = true}) {
     return _guard(() async {
       final current = push;
 
@@ -249,7 +250,7 @@ class NotifiableClient extends ChangeNotifier {
       await _syncDevice(
         prompted: true,
         permission: permission,
-        requireToken: permission == PermissionStatus.granted,
+        requireToken: requireToken && permission == PermissionStatus.granted,
       );
       return _snapshot.permission;
     });

@@ -153,6 +153,55 @@ void main() {
     expect(client.snapshot.permission, PermissionStatus.notDetermined);
   });
 
+  test('dashboard prompt clears without a token', () async {
+    final transport = StubTransport((call) {
+      if (call.url.contains('client-config')) {
+        return success(clientConfig('development'));
+      }
+
+      final prompted = call.body['prompted'] == true;
+      return success(subscriber(prompt: !prompted, permission: 'not_determined'));
+    });
+    final push = FakePush()..deviceToken = null;
+    final client = makeClient(transport, push: push);
+
+    await client.start();
+
+    final posts = transport.recorded
+        .where((call) => call.method == 'POST' && call.url.contains('/subscribers'))
+        .toList();
+    expect(posts, hasLength(2));
+    expect(posts[1].body['prompted'], isTrue);
+    expect(posts[1].body['permission'], 'not_determined');
+    expect(posts[1].body.containsKey('token'), isFalse);
+    expect(push.requests, 1);
+    expect(client.snapshot.error, isNull);
+  });
+
+  test('explicit requestPermission requires a token', () async {
+    final transport = StubTransport((call) {
+      if (call.url.contains('client-config')) {
+        return success(clientConfig('production'));
+      }
+
+      return success(subscriber(prompt: false));
+    });
+    final push = FakePush()..deviceToken = null;
+    final client = makeClient(transport, push: push);
+    await client.start();
+
+    await expectLater(
+      client.requestPermission(),
+      throwsA(
+        isA<NotifiableError>().having(
+          (error) => error.code,
+          'code',
+          NotifiableErrorCode.missingToken,
+        ),
+      ),
+    );
+  });
+
   test('identify clears the anonymous id', () async {
     final transport = StubTransport((call) {
       if (call.url.contains('client-config')) {

@@ -63,23 +63,39 @@ public class NotifiablePlugin: NSObject, FlutterPlugin, FlutterApplicationDelega
   }
 
   private func requestPermission(result: @escaping FlutterResult) {
-    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) {
-      _, _ in
-      UNUserNotificationCenter.current().getNotificationSettings { settings in
-        let status = Self.map(settings.authorizationStatus)
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      let current = Self.map(settings.authorizationStatus)
 
-        if status == "granted" {
-          DispatchQueue.main.async {
-            self.tokenStore.prepareForRegistration()
-            UIApplication.shared.registerForRemoteNotifications()
-          }
-        }
-
+      if current == "denied" {
         DispatchQueue.main.async {
-          result(status)
+          self.openNotificationSettings()
+          result("denied")
+        }
+        return
+      }
+
+      UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) {
+        _, _ in
+        UNUserNotificationCenter.current().getNotificationSettings { updated in
+          let status = Self.map(updated.authorizationStatus)
+
+          DispatchQueue.main.async {
+            if status == "granted" {
+              self.tokenStore.prepareForRegistration()
+              UIApplication.shared.registerForRemoteNotifications()
+            }
+            result(status)
+          }
         }
       }
     }
+  }
+
+  private func openNotificationSettings() {
+    guard let url = URL(string: UIApplication.openSettingsURLString) else {
+      return
+    }
+    UIApplication.shared.open(url)
   }
 
   private func token(result: @escaping FlutterResult) {
