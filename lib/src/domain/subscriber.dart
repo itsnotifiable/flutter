@@ -36,7 +36,6 @@ enum MobilePlatform {
 enum PushProvider {
   apns('apns'),
   fcm('fcm'),
-  expo('expo'),
   webPush('web_push');
 
   const PushProvider(this.value);

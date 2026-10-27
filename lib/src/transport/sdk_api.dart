@@ -304,19 +304,13 @@ Subscriber parseSubscriber(Object? data) {
     );
   }
 
+  // Unknown values (including legacy "expo") become null so old sessions load.
   final PushProvider? provider;
 
   if (!fields.containsKey('provider') || fields['provider'] == null) {
     provider = null;
   } else {
     provider = PushProvider.parse(_string(fields['provider']));
-
-    if (provider == null) {
-      throw NotifiableError(
-        NotifiableErrorCode.network,
-        'The subscriber response was invalid.',
-      );
-    }
   }
 
   return Subscriber(
