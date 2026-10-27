@@ -6,10 +6,26 @@ Import `package:notifiable_flutter/notifiable.dart` only. On iOS the package use
 
 ## Install
 
+Package on [pub.dev](https://pub.dev/packages/notifiable_flutter):
+
+```bash
+flutter pub add notifiable_flutter
+```
+
+Or add it to your app’s `pubspec.yaml` and run `flutter pub get`:
+
 ```yaml
 dependencies:
   notifiable_flutter: ^0.1.0
 ```
+
+Then import only this library:
+
+```dart
+import 'package:notifiable_flutter/notifiable.dart';
+```
+
+### Platform setup
 
 **iOS:** iOS 13+. Enable the Push Notifications capability. The plugin receives the APNs token through Flutter’s application delegate — no AppDelegate swizzling.
 
