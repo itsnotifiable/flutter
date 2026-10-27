@@ -2,15 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notifiable/notifiable.dart';
-import 'package:notifiable/src/domain/environment.dart';
-import 'package:notifiable/src/domain/inbox.dart';
-import 'package:notifiable/src/domain/locale.dart';
-import 'package:notifiable/src/domain/models.dart';
-import 'package:notifiable/src/domain/subscriber.dart';
-import 'package:notifiable/src/internal/storage.dart';
-import 'package:notifiable/src/platform/flutter_platform.dart';
-import 'package:notifiable/src/transport/http_client.dart';
+import 'package:notifiable_flutter/notifiable.dart';
+import 'package:notifiable_flutter/src/domain/environment.dart';
+import 'package:notifiable_flutter/src/domain/inbox.dart';
+import 'package:notifiable_flutter/src/domain/locale.dart';
+import 'package:notifiable_flutter/src/domain/models.dart';
+import 'package:notifiable_flutter/src/domain/subscriber.dart';
+import 'package:notifiable_flutter/src/internal/storage.dart';
+import 'package:notifiable_flutter/src/platform/flutter_platform.dart';
+import 'package:notifiable_flutter/src/transport/http_client.dart';
 
 void main() {
   test('blank key throws before a request', () {

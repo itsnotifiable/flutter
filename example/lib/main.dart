@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notifiable/notifiable.dart';
+import 'package:notifiable_flutter/notifiable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _keyName = 'notifiable.example.publicKey';

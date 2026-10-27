@@ -2,17 +2,14 @@
 
 Register a Flutter app with [Notifiable](https://notifiable.sh): connect with a public key, ask for notification permission, identify the user, list their inbox, record opens and taps, and track events.
 
-Import `package:notifiable/notifiable.dart` only. On iOS the package uses APNs; on Android it uses FCM. The app does not pass a push port.
+Import `package:notifiable_flutter/notifiable.dart` only. On iOS the package uses APNs; on Android it uses FCM. The app does not pass a push port.
 
 ## Install
 
 ```yaml
 dependencies:
-  notifiable:
-    path: ../flutter   # or a git dependency pointing at the flutter/ directory
+  notifiable_flutter: ^0.1.0
 ```
-
-Publishing to pub.dev is a later step.
 
 **iOS:** iOS 13+. Enable the Push Notifications capability. The plugin receives the APNs token through Flutter’s application delegate — no AppDelegate swizzling.
 
@@ -23,7 +20,7 @@ Publishing to pub.dev is a later step.
 Wrap the app in `Notifiable`. It builds the client and calls `start()` on mount.
 
 ```dart
-import 'package:notifiable/notifiable.dart';
+import 'package:notifiable_flutter/notifiable.dart';
 
 Notifiable(
   publicKey: 'ntf_pub_...',
@@ -187,7 +184,7 @@ cd flutter && flutter test
 
 ### Rules
 
-1. Import only `package:notifiable/notifiable.dart`. Do not deep-import `lib/src`.
+1. Import only `package:notifiable_flutter/notifiable.dart`. Do not deep-import `lib/src`.
 2. Mount one `Notifiable(...)` around the app (or build `NotifiableClient` and call `start()`).
 3. Pass `publicKey`, optional `deepLinks`, and `onDeepLink` that navigates with the app’s router.
 4. Wait for `snapshot.ready` before identify / inbox / track APIs. Call `requestPermission()` from a button.
@@ -200,9 +197,9 @@ cd flutter && flutter test
 Copy this into a coding agent when wiring the SDK into an existing Flutter app:
 
 ```text
-Integrate the Notifiable Flutter package (package:notifiable/notifiable.dart) into this Flutter project.
+Integrate the Notifiable Flutter package (package:notifiable_flutter/notifiable.dart) into this Flutter project.
 
-1. Add the notifiable dependency (path or git to the flutter/ directory of notifiable-sdks).
+1. Add `notifiable_flutter: ^0.1.0` to pubspec.yaml and run `flutter pub get`.
 2. On iOS, enable the Push Notifications capability. On Android, add google-services.json and the Google Services plugin if the app should receive FCM tokens; do not crash if Firebase is missing.
 3. Wrap the root MaterialApp / navigator in Notifiable(publicKey: ..., deepLinks: ..., onDeepLink: ..., child: ...).
 4. Pass publicKey from the project’s config (development key for debug, production key for release).

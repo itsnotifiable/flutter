@@ -1,5 +1,5 @@
 Pod::Spec.new do |s|
-  s.name             = 'notifiable'
+  s.name             = 'notifiable_flutter'
   s.version          = '0.1.0'
   s.summary          = 'Notifiable Flutter plugin.'
   s.description      = 'Registers a Flutter app with Notifiable.'

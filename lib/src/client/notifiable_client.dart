@@ -477,7 +477,7 @@ class NotifiableClient extends ChangeNotifier {
 
     final described = describeCrash(error, stack);
     final anchor = described.frames.where(
-      (frame) => frame.file.contains('package:notifiable/'),
+      (frame) => frame.file.contains('package:notifiable_flutter/'),
     );
     final fingerprint = crashFingerprint(
       type: described.type,
